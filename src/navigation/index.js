@@ -4,15 +4,35 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 const Stack = createNativeStackNavigator();
 
-import Home from '../screen/Home';
-import Detail from '../screen/Detail';
-import Signin from '../screen/Signin';
+import SplashScreen from '../screens/Splash';
+import AuthScreen from './auth';
+import AppScreen from './app';
 
 export default function MainStackNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Home" component={Home} />
+      <Stack.Navigator initialRouteName="SplashScreen">
+        <Stack.Screen
+          name="SplashScreen"
+          component={SplashScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="AuthScreen"
+          component={AuthScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="AppScreen"
+          component={AppScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
