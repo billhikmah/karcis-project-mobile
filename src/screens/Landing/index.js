@@ -10,8 +10,9 @@ export default function SplashScreen(props) {
       <Text style={styles.text}>
         Welcome to{' '}
         <Text style={styles.title}>
+          {' '}
           Kar
-          <Text style={styles.subtitle}>cis</Text>
+          <Text style={styles.subtitle}>cis </Text>
         </Text>
       </Text>
       <Image source={require('../../assets/Images/Image-1.png')} alt="banner" />
