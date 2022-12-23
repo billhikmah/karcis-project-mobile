@@ -1,4 +1,5 @@
 import React from 'react';
+import {useState} from 'react';
 import {
   View,
   Text,
@@ -6,40 +7,84 @@ import {
   TouchableOpacity,
   TextInput,
   Image,
+  ScrollView,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import {useSelector, useDispatch} from 'react-redux';
+import {signinAction} from '../../store/action/user.js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {ActivityIndicator} from 'react-native-paper';
+import {getUserAction} from '../../store/action/user';
 
 export default function Signin(props) {
-  const loginHandler = () => {
-    props.navigation.replace('AppScreen', {screen: 'MenuNavigator'});
+  const userData = useSelector(state => state.user);
+  const dispatch = useDispatch();
+  const [form, setForm] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleChangeForm = (value, name) => {
+    setForm({...form, [name]: value});
   };
+
+  const loginHandler = async () => {
+    try {
+      setErrorMessage(' ');
+      setIsLoading(true);
+      if (!form.email || !form.password) {
+        setIsLoading(false);
+        return setErrorMessage('Please fill in all required fields.');
+      }
+      const result = await dispatch(signinAction(form));
+      await AsyncStorage.setItem(
+        'token',
+        result.action.payload.data.data.token,
+      );
+      await AsyncStorage.setItem(
+        'refreshToken',
+        result.action.payload.data.data.refreshToken,
+      );
+      await AsyncStorage.setItem('id', result.action.payload.data.data.user_id);
+      setIsLoading(false);
+
+      dispatch(getUserAction());
+      props.navigation.replace('AppScreen', {screen: 'MenuNavigator'});
+      return;
+    } catch (error) {
+      setIsLoading(false);
+      setErrorMessage(userData.errorMessage);
+    }
+  };
+
   const navigationHandler = path => {
+    if (path === 'back') {
+      return props.navigation.goBack();
+    }
     props.navigation.navigate(path);
   };
+
+  const showPasswordHandler = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
-    <View style={styles.main}>
-      <TouchableOpacity style={styles.backContainer}>
-        <Text
-          style={styles.backButton}
-          onPress={() => {
-            navigationHandler('Landing');
-          }}>
-          back
-        </Text>
+    <ScrollView style={styles.main}>
+      <TouchableOpacity
+        style={styles.backContainer}
+        onPress={() => {
+          navigationHandler('back');
+        }}>
+        <Icon name="arrow-left" style={styles.backButton} />
       </TouchableOpacity>
       <Text style={styles.title}>Log In</Text>
       <Text style={styles.text}>Hi, Welcome back to Karcis!</Text>
       <View style={styles.inputContainer}>
         <TextInput
-          placeholder="Username"
-          placeholderTextColor="#C1C5D0"
-          style={styles.input}
-        />
-      </View>
-      <View style={styles.inputContainer}>
-        <TextInput
           placeholder="Email"
           placeholderTextColor="#C1C5D0"
           style={styles.input}
+          onChangeText={text => handleChangeForm(text, 'email')}
         />
       </View>
       <View style={styles.inputContainer}>
@@ -47,8 +92,24 @@ export default function Signin(props) {
           placeholder="Password"
           placeholderTextColor="#C1C5D0"
           style={styles.input}
-          secureTextEntry={true}
+          secureTextEntry={!showPassword ? true : false}
+          onChangeText={text => handleChangeForm(text, 'password')}
         />
+        {showPassword ? (
+          <Icon
+            name="eye"
+            onPress={showPasswordHandler}
+            style={styles.eye}
+            size={20}
+          />
+        ) : (
+          <Icon
+            name="eye-slash"
+            onPress={showPasswordHandler}
+            style={styles.eye}
+            size={20}
+          />
+        )}
       </View>
       <View style={styles.forgotContainer}>
         <TouchableOpacity>
@@ -61,11 +122,26 @@ export default function Signin(props) {
           </Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity>
+      {errorMessage ? (
+        <Text style={styles.errorMessage}>{errorMessage}</Text>
+      ) : (
+        <Text>&nbsp;</Text>
+      )}
+      <TouchableOpacity
+        onPress={() => {
+          loginHandler();
+        }}>
         <View style={styles.buttonContainer}>
-          <Text style={styles.button} onPress={loginHandler}>
-            Log In
-          </Text>
+          {isLoading ? (
+            <ActivityIndicator
+              animating={isLoading}
+              color="white"
+              size={20}
+              style={styles.button}
+            />
+          ) : (
+            <Text style={styles.button}>Log In</Text>
+          )}
         </View>
       </TouchableOpacity>
       <Text style={styles.optionText}>or sign in with</Text>
@@ -89,7 +165,7 @@ export default function Signin(props) {
           />
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -101,7 +177,7 @@ const styles = StyleSheet.create({
   backButton: {
     color: '#000000',
     margin: '5%',
-    fontSize: 20,
+    fontSize: 25,
     justifyContent: 'flex-start',
   },
   title: {
@@ -130,6 +206,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#C1C5D0',
     borderRadius: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: '5%',
   },
   input: {
     fontFamily: 'Poppins',
@@ -138,7 +218,12 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     letterSpacing: 0.5,
     color: 'black',
-    paddingHorizontal: '5%',
+    width: '90%',
+  },
+  eye: {
+    color: '#3366FF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   forgotContainer: {
     marginHorizontal: '5%',
@@ -152,6 +237,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     letterSpacing: 0.5,
     color: '#3366FF',
+  },
+  errorMessage: {
+    color: 'red',
+    fontSize: 18,
+    textAlign: 'center',
   },
   buttonContainer: {
     marginHorizontal: '5%',
