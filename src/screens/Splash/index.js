@@ -1,20 +1,26 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useEffect} from 'react';
 import {View, Text, StyleSheet, Image} from 'react-native';
+import logCurrentStorage from '../../utilities/checkAsyncStorage';
 
 export default function SplashScreen(props) {
-  const token = false;
+  // const token = false;
 
   useEffect(() => {
     checkToken();
+    // logCurrentStorage();
   });
 
   const checkToken = () => {
-    setTimeout(() => {
-      if (token) {
-        props.navigation.replace('AppScreen');
-      } else {
-        props.navigation.replace('AuthScreen');
-      }
+    setTimeout(async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (token) {
+          props.navigation.replace('AppScreen');
+        } else {
+          props.navigation.replace('AuthScreen');
+        }
+      } catch (error) {}
     }, 1500);
   };
 
