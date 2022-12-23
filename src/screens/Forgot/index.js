@@ -6,24 +6,17 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 
-export default function Signup(props) {
-  //   const handleLogin = () => {
-  //     props.navigation.replace('AppScreen', {screen: 'MenuNavigator'});
-  //   };
-  const navigationHandler = path => {
-    props.navigation.navigate(path);
-  };
+export default function Forgot(props) {
   return (
     <View style={styles.main}>
-      <TouchableOpacity style={styles.backContainer}>
-        <Text
-          style={styles.backButton}
-          onPress={() => {
-            navigationHandler('Signin');
-          }}>
-          back
-        </Text>
+      <TouchableOpacity
+        style={styles.backContainer}
+        onPress={() => {
+          props.navigation.goBack();
+        }}>
+        <Icon name="arrow-left" style={styles.backButton} />
       </TouchableOpacity>
       <Text style={styles.title}>Forgot Password</Text>
       <Text style={styles.text}>You’ll get mail soon on your email</Text>
